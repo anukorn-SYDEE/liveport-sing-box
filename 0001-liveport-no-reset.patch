@@ -1,0 +1,15 @@
+--- a/route/network.go	2026-10-23 21:39:13.000000000 +0700
++++ b/route/network.go	2026-11-11 10:02:19.109678900 +0700
+@@ -565,6 +565,12 @@
+ 		r.networkResetPending = false
+ 	}
+ 	r.interfaceUpdateAccess.Unlock()
++	// LiVEport patch: on a bonding router the tunnel's MPTCP connections survive a change of the
++	// default route (subflows move by themselves), so closing every connection only breaks live streams.
++	if resetNetwork && os.Getenv("LIVEPORT_NO_RESET") != "" {
++		r.logger.Info("default interface changed: connections kept (LIVEPORT_NO_RESET)")
++		resetNetwork = false
++	}
+ 	if resetNetwork {
+ 		r.ResetNetwork(ctx)
+ 	}
